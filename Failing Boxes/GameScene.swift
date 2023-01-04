@@ -10,6 +10,21 @@ import SpriteKit
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
+    var scoreLabel: SKLabelNode!
+    var editLabel: SKLabelNode!
+    
+    var isEditing = false {
+        didSet {
+            editLabel.text = isEditing ? "Done" : "Edit"
+        }
+    }
+
+    var score = 0 {
+        didSet {
+            scoreLabel.text = "Score: \(score)"
+        }
+    }
+    
     override func didMove(to view: SKView) {
         
         /// Create SpriteNode
@@ -21,6 +36,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         background.blendMode = .replace
         
         background.zPosition = -1
+        
+        configureScoreLabel()
+        configureEditingLabel()
         
         /// Add it to the game scene
         addChild(background)
@@ -40,30 +58,62 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         makeBouncer(at: CGPoint(x: 768, y: 50))
         makeBouncer(at: CGPoint(x: 1024, y: 50))
 
-        
+    }
 
+    
+    func configureEditingLabel() {
+        editLabel = SKLabelNode(text: "Edit")
+        editLabel.fontName = "Chalkduster"
+        editLabel.position = CGPoint(x: 50, y: 670)
+        addChild(editLabel)
     }
     
+    func configureScoreLabel() {
+        scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
+        scoreLabel.text = "Score: 0"
+        scoreLabel.horizontalAlignmentMode = .right
+        scoreLabel.position = CGPoint(x: 990, y: 670)
+        addChild(scoreLabel)
+    }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         /// Get the first touch
         guard let touch = touches.first else {return}
         /// Get the location of that first touch in the GameScene
-        let locationOfTouch = touch.location(in: self)
-        /// Create a red square
-        let ball = SKSpriteNode(imageNamed: "ballRed")
-        ball.name = "ball"
-    
-        
-        ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width/2)
-        
-        ball.physicsBody!.restitution = 0.4
 
-        ball.physicsBody!.contactTestBitMask = ball.physicsBody!.categoryBitMask
+        let locationOfTouch = touch.location(in: self)
         
-        ball.position = locationOfTouch
-        /// Add that ball to the GameScene
-        addChild(ball)
+        let objects = nodes(at: locationOfTouch)
+        
+        if objects.contains(editLabel) {
+            isEditing.toggle()
+        }else{
+            if isEditing {
+                let obstacle = SKSpriteNode(color: UIColor(red: CGFloat.random(in: 0...1), green: CGFloat.random(in: 0...1), blue: CGFloat.random(in: 0...1), alpha: 1), size: CGSize(width: CGFloat.random(in: 16...128), height: 16))
+                
+                obstacle.position = locationOfTouch
+                obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
+                obstacle.physicsBody?.isDynamic = false
+                obstacle.zRotation = CGFloat.random(in: 0...3)
+                addChild(obstacle)
+            }else{
+                /// Create a ball
+                let ball = SKSpriteNode(imageNamed: "ballRed")
+                ball.name = "ball"
+            
+                ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width/2)
+                
+                ball.physicsBody!.restitution = 0.4
+
+                ball.physicsBody!.contactTestBitMask = ball.physicsBody!.categoryBitMask
+                
+                ball.position = locationOfTouch
+                /// Add that ball to the GameScene
+                addChild(ball)
+            }
+        }
+        
+        
     }
     
     func makeBouncer(at position:CGPoint) {
@@ -129,9 +179,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func collision(between ball:SKNode,object:SKNode) {
         if object.name == "good" {
             destroy(ball)
+            score += 1
         }
         if object.name == "bad" {
             destroy(ball)
+            score -= 1
         }
     }
     
