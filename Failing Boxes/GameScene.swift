@@ -18,7 +18,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             editLabel.text = isEditing ? "Done" : "Edit"
         }
     }
-
+    
     var score = 0 {
         didSet {
             scoreLabel.text = "Score: \(score)"
@@ -45,7 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
         physicsWorld.contactDelegate = self
-
+        
         
         makeGoodSlot(at: CGPoint(x: 128, y: 50))
         makeBadSlot(at: CGPoint(x: 384, y: 50))
@@ -57,9 +57,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         makeBouncer(at: CGPoint(x: 512, y: 50))
         makeBouncer(at: CGPoint(x: 768, y: 50))
         makeBouncer(at: CGPoint(x: 1024, y: 50))
-
+        
     }
-
+    
     
     func configureEditingLabel() {
         editLabel = SKLabelNode(text: "Edit")
@@ -80,7 +80,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         /// Get the first touch
         guard let touch = touches.first else {return}
         /// Get the location of that first touch in the GameScene
-
+        
         let locationOfTouch = touch.location(in: self)
         
         let objects = nodes(at: locationOfTouch)
@@ -100,11 +100,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 /// Create a ball
                 let ball = SKSpriteNode(imageNamed: "ballRed")
                 ball.name = "ball"
-            
+                
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width/2)
                 
                 ball.physicsBody!.restitution = 0.4
-
+                
                 ball.physicsBody!.contactTestBitMask = ball.physicsBody!.categoryBitMask
                 
                 ball.position = locationOfTouch
@@ -112,8 +112,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 addChild(ball)
             }
         }
-        
-        
     }
     
     func makeBouncer(at position:CGPoint) {
@@ -122,7 +120,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bouncer.physicsBody = SKPhysicsBody(circleOfRadius: bouncer.size.width/2)
         bouncer.physicsBody!.isDynamic = false
         addChild(bouncer)
-
     }
     
     func makeBadSlot(at position:CGPoint) {
@@ -131,7 +128,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         badSlot.physicsBody = SKPhysicsBody(rectangleOf: badSlot.size)
         badSlot.physicsBody!.isDynamic = false
         badSlot.position = position
-
+        
         let slotBadGlow = SKSpriteNode(imageNamed: "slotGlowBad")
         
         slotBadGlow.position = position
@@ -139,10 +136,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spin = SKAction.rotate(byAngle: .pi, duration: 10)
         let spinForever = SKAction.repeatForever(spin)
         slotBadGlow.run(spinForever)
-
+        
         addChild(badSlot)
         addChild(slotBadGlow)
-
+        
     }
     
     func makeGoodSlot(at position:CGPoint) {
@@ -151,7 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         goodSlot.physicsBody = SKPhysicsBody(rectangleOf: goodSlot.size)
         goodSlot.physicsBody!.isDynamic = false
         goodSlot.position = position
-
+        
         let slotGoodGlow = SKSpriteNode(imageNamed: "slotGlowGood")
         
         slotGoodGlow.position = position
@@ -160,10 +157,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spinForever = SKAction.repeatForever(spin)
         
         slotGoodGlow.run(spinForever)
-
+        
         addChild(goodSlot)
         addChild(slotGoodGlow)
-
+        
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -188,6 +185,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func destroy(_ ball: SKNode){
+        
+        if let particles = SKEmitterNode(fileNamed: "FireParticles"){
+            particles.position = ball.position
+            addChild(particles)
+        }
         ball.removeFromParent()
     }
     
