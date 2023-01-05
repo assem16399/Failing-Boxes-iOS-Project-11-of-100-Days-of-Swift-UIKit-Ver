@@ -9,9 +9,17 @@ import SpriteKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    var balls = ["ballRed","ballBlue","ballGreen","ballCyan","ballGrey","ballYellow","ballPurple"]
+    
+    var ballLimit = 5 {
+        didSet {
+            ballsLimitLabel.text = "Balls Limit: \(ballLimit)"
+        }
+    }
     
     var scoreLabel: SKLabelNode!
     var editLabel: SKLabelNode!
+    var ballsLimitLabel: SKLabelNode!
     
     var isEditing = false {
         didSet {
@@ -39,6 +47,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         configureScoreLabel()
         configureEditingLabel()
+        configureBallLimitLabel()
         
         /// Add it to the game scene
         addChild(background)
@@ -60,6 +69,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    
+    func configureBallLimitLabel() {
+        ballsLimitLabel = SKLabelNode(text: "Balls Limit: 5")
+        ballsLimitLabel.fontName = "Chalkduster"
+        ballsLimitLabel.position = CGPoint(x: 470, y: 670)
+        addChild(ballsLimitLabel)
+    }
     
     func configureEditingLabel() {
         editLabel = SKLabelNode(text: "Edit")
@@ -90,15 +106,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }else{
             if isEditing {
                 let obstacle = SKSpriteNode(color: UIColor(red: CGFloat.random(in: 0...1), green: CGFloat.random(in: 0...1), blue: CGFloat.random(in: 0...1), alpha: 1), size: CGSize(width: CGFloat.random(in: 16...128), height: 16))
-                
+                obstacle.name = "obstacle"
                 obstacle.position = locationOfTouch
                 obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.size)
                 obstacle.physicsBody?.isDynamic = false
                 obstacle.zRotation = CGFloat.random(in: 0...3)
                 addChild(obstacle)
             }else{
+                if locationOfTouch.y<500 || ballLimit <= 0 {return}
                 /// Create a ball
-                let ball = SKSpriteNode(imageNamed: "ballRed")
+                ballLimit -= 1
+                let ball = SKSpriteNode(imageNamed: balls.randomElement() ?? "ballRed")
                 ball.name = "ball"
                 
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width/2)
@@ -177,10 +195,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if object.name == "good" {
             destroy(ball)
             score += 1
+            ballLimit += 1
         }
         if object.name == "bad" {
             destroy(ball)
             score -= 1
+        }
+        if object.name == "obstacle" {
+            object.removeFromParent()
         }
     }
     
